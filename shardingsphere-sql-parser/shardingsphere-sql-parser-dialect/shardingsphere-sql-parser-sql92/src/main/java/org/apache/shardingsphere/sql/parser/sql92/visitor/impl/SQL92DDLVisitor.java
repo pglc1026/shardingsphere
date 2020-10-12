@@ -22,6 +22,7 @@ import org.apache.shardingsphere.sql.parser.api.visitor.statement.DDLVisitor;
 import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.AddColumnSpecificationContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.AlterDefinitionClauseContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.AlterTableContext;
+import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.CheckConstraintDefinitionContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.ColumnDefinitionContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.ConstraintDefinitionContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.CreateDefinitionClauseContext;
@@ -31,20 +32,20 @@ import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.DataTyp
 import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.DropColumnSpecificationContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.DropTableContext;
 import org.apache.shardingsphere.sql.parser.autogen.SQL92StatementParser.ModifyColumnSpecificationContext;
-import org.apache.shardingsphere.sql.parser.sql.segment.ddl.AlterDefinitionSegment;
-import org.apache.shardingsphere.sql.parser.sql.segment.ddl.CreateDefinitionSegment;
-import org.apache.shardingsphere.sql.parser.sql.segment.ddl.column.ColumnDefinitionSegment;
-import org.apache.shardingsphere.sql.parser.sql.segment.ddl.column.alter.AddColumnDefinitionSegment;
-import org.apache.shardingsphere.sql.parser.sql.segment.ddl.column.alter.DropColumnDefinitionSegment;
-import org.apache.shardingsphere.sql.parser.sql.segment.ddl.column.alter.ModifyColumnDefinitionSegment;
-import org.apache.shardingsphere.sql.parser.sql.segment.ddl.constraint.ConstraintDefinitionSegment;
-import org.apache.shardingsphere.sql.parser.sql.segment.dml.column.ColumnSegment;
-import org.apache.shardingsphere.sql.parser.sql.segment.generic.DataTypeSegment;
-import org.apache.shardingsphere.sql.parser.sql.segment.generic.table.SimpleTableSegment;
-import org.apache.shardingsphere.sql.parser.sql.statement.ddl.AlterTableStatement;
-import org.apache.shardingsphere.sql.parser.sql.statement.ddl.CreateTableStatement;
-import org.apache.shardingsphere.sql.parser.sql.statement.ddl.DropTableStatement;
-import org.apache.shardingsphere.sql.parser.sql.value.collection.CollectionValue;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.AlterDefinitionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.CreateDefinitionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.column.ColumnDefinitionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.column.alter.AddColumnDefinitionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.column.alter.DropColumnDefinitionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.column.alter.ModifyColumnDefinitionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.constraint.ConstraintDefinitionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.column.ColumnSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.DataTypeSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.value.collection.CollectionValue;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.sql92.ddl.SQL92AlterTableStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.sql92.ddl.SQL92CreateTableStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.sql92.ddl.SQL92DropTableStatement;
 import org.apache.shardingsphere.sql.parser.sql92.visitor.SQL92Visitor;
 
 import java.util.Collections;
@@ -57,7 +58,8 @@ public final class SQL92DDLVisitor extends SQL92Visitor implements DDLVisitor {
     @SuppressWarnings("unchecked")
     @Override
     public ASTNode visitCreateTable(final CreateTableContext ctx) {
-        CreateTableStatement result = new CreateTableStatement((SimpleTableSegment) visit(ctx.tableName()));
+        SQL92CreateTableStatement result = new SQL92CreateTableStatement();
+        result.setTable((SimpleTableSegment) visit(ctx.tableName()));
         if (null != ctx.createDefinitionClause()) {
             CollectionValue<CreateDefinitionSegment> createDefinitions = (CollectionValue<CreateDefinitionSegment>) visit(ctx.createDefinitionClause());
             for (CreateDefinitionSegment each : createDefinitions.getValue()) {
@@ -81,6 +83,9 @@ public final class SQL92DDLVisitor extends SQL92Visitor implements DDLVisitor {
             if (null != each.constraintDefinition()) {
                 result.getValue().add((ConstraintDefinitionSegment) visit(each.constraintDefinition()));
             }
+            if (null != each.checkConstraintDefinition()) {
+                result.getValue().add((ConstraintDefinitionSegment) visit(each.checkConstraintDefinition()));
+            }
         }
         return result;
     }
@@ -98,6 +103,11 @@ public final class SQL92DDLVisitor extends SQL92Visitor implements DDLVisitor {
             }
         }
         return result;
+    }
+    
+    @Override
+    public ASTNode visitCheckConstraintDefinition(final CheckConstraintDefinitionContext ctx) {
+        return new ConstraintDefinitionSegment(ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex());
     }
     
     private boolean isPrimaryKey(final ColumnDefinitionContext ctx) {
@@ -125,7 +135,8 @@ public final class SQL92DDLVisitor extends SQL92Visitor implements DDLVisitor {
     @SuppressWarnings("unchecked")
     @Override
     public ASTNode visitAlterTable(final AlterTableContext ctx) {
-        AlterTableStatement result = new AlterTableStatement((SimpleTableSegment) visit(ctx.tableName()));
+        SQL92AlterTableStatement result = new SQL92AlterTableStatement();
+        result.setTable((SimpleTableSegment) visit(ctx.tableName()));
         if (null != ctx.alterDefinitionClause()) {
             for (AlterDefinitionSegment each : ((CollectionValue<AlterDefinitionSegment>) visit(ctx.alterDefinitionClause())).getValue()) {
                 if (each instanceof AddColumnDefinitionSegment) {
@@ -183,7 +194,7 @@ public final class SQL92DDLVisitor extends SQL92Visitor implements DDLVisitor {
     @SuppressWarnings("unchecked")
     @Override
     public ASTNode visitDropTable(final DropTableContext ctx) {
-        DropTableStatement result = new DropTableStatement();
+        SQL92DropTableStatement result = new SQL92DropTableStatement();
         result.getTables().addAll(((CollectionValue<SimpleTableSegment>) visit(ctx.tableNames())).getValue());
         return result;
     }

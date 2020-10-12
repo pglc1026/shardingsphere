@@ -20,7 +20,7 @@ package org.apache.shardingsphere.sql.parser.core.visitor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.apache.shardingsphere.sql.parser.sql.statement.SQLStatementType;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatementType;
 
 /**
  * Visitor rule.
@@ -51,6 +51,52 @@ public enum VisitorRule {
     ALTER_INDEX("AlterIndex", SQLStatementType.DDL),
     
     DROP_INDEX("DropIndex", SQLStatementType.DDL),
+
+    CREATE_PROCEDURE("CreateProcedure", SQLStatementType.DDL),
+
+    ALTER_PROCEDURE("AlterProcedure", SQLStatementType.DDL),
+
+    DROP_PROCEDURE("DropProcedure", SQLStatementType.DDL),
+
+    CREATE_FUNCTION("CreateFunction", SQLStatementType.DDL),
+
+    ALTER_FUNCTION("AlterFunction", SQLStatementType.DDL),
+
+    DROP_FUNCTION("DropFunction", SQLStatementType.DDL),
+
+    CREATE_DATABASE("CreateDatabase", SQLStatementType.DDL),
+    
+    ALTER_DATABASE("AlterDatabase", SQLStatementType.DDL),
+
+    DROP_DATABASE("DropDatabase", SQLStatementType.DDL),
+
+    CREATE_EVENT("CreateEvent", SQLStatementType.DDL),
+
+    ALTER_EVENT("AlterEvent", SQLStatementType.DDL),
+    
+    DROP_EVENT("DropEvent", SQLStatementType.DDL),
+
+    ALTER_INSTANCE("AlterInstance", SQLStatementType.DDL),
+
+    CREATE_LOGFILE_GROUP("CreateLogfileGroup", SQLStatementType.DDL),
+
+    ALTER_LOGFILE_GROUP("AlterLogfileGroup", SQLStatementType.DDL),
+
+    DROP_LOGFILE_GROUP("DropLogfileGroup", SQLStatementType.DDL),
+
+    CREATE_SERVER("CreateServer", SQLStatementType.DDL),
+    
+    ALTER_SERVER("AlterServer", SQLStatementType.DDL),
+
+    DROP_SERVER("DropServer", SQLStatementType.DDL),
+
+    CREATE_TRIGGER("CreateTrigger", SQLStatementType.DDL),
+
+    DROP_TRIGGER("DropTrigger", SQLStatementType.DDL),
+    
+    CREATE_VIEW("CreateView", SQLStatementType.DDL),
+    
+    DROP_VIEW("DropView", SQLStatementType.DDL),
     
     SET_TRANSACTION("SetTransaction", SQLStatementType.TCL),
     
@@ -102,6 +148,8 @@ public enum VisitorRule {
     
     DESC("Desc", SQLStatementType.DAL),
     
+    EXPLAIN("Explain", SQLStatementType.DAL),
+    
     SHOW_DATABASES("ShowDatabases", SQLStatementType.DAL),
     
     SHOW_TABLES("ShowTables", SQLStatementType.DAL),
@@ -121,6 +169,10 @@ public enum VisitorRule {
     SET_VARIABLE("SetVariable", SQLStatementType.DAL),
     
     SET("Set", SQLStatementType.DAL),
+    
+    SET_NAME("SetName", SQLStatementType.DAL),
+    
+    SET_CHARACTER("SetCharacter", SQLStatementType.DAL),
     
     RESET_PARAMETER("ResetParameter", SQLStatementType.DAL),
     
@@ -149,7 +201,7 @@ public enum VisitorRule {
      */
     public static VisitorRule valueOf(final Class<? extends ParseTree> parseTreeClass) {
         String parseTreeClassName = parseTreeClass.getSimpleName();
-        for (VisitorRule each : VisitorRule.values()) {
+        for (VisitorRule each : values()) {
             if (each.getContextName().equals(parseTreeClassName)) {
                 return each;
             }

@@ -17,23 +17,79 @@
 
 grammar DDLStatement;
 
-import Symbol, Keyword, MySQLKeyword, Literals, BaseRule, DMLStatement;
+import Symbol, Keyword, MySQLKeyword, Literals, BaseRule, DMLStatement, DALStatement;
 
 createTable
-    : CREATE createTableSpecification_? TABLE tableNotExistClause_ tableName (createDefinitionClause | createLikeClause)
+    : CREATE TEMPORARY? TABLE notExistClause_? tableName (createDefinitionClause? tableOptions_? partitionClause? duplicateAsQueryExpression? | createLikeClause)
+    ;
+
+partitionClause
+    : PARTITION BY partitionTypeDef (PARTITIONS NUMBER_)? subPartitions? partitionDefinitions_?
+    ;
+
+partitionTypeDef
+    : LINEAR? KEY partitionKeyAlgorithm? columnNames
+    | LINEAR? HASH LP_ bitExpr RP_
+    | (RANGE | LIST) (LP_ bitExpr RP_ | COLUMNS columnNames )
+    ;
+
+subPartitions
+    : SUBPARTITION BY LINEAR? ( HASH LP_ bitExpr RP_ | KEY partitionKeyAlgorithm? columnNames ) (SUBPARTITIONS NUMBER_)?
+    ;
+
+partitionKeyAlgorithm
+    : ALGORITHM EQ_ NUMBER_
+    ;
+
+duplicateAsQueryExpression
+    : (REPLACE | IGNORE)? AS? LP_? select RP_?
     ;
 
 alterTable
-    : ALTER TABLE tableName alterDefinitionClause?
+    : ALTER TABLE tableName alterDefinitionClause? partitionOption?
+    ;
+
+partitionOptions
+    :partitionOption partitionOption*
+    ;
+
+partitionOption
+    : ADD PARTITION LP_ partitionDefinition_ RP_
+    | DROP PARTITION partitionNames
+    | DISCARD PARTITION (partitionNames | ALL) TABLESPACE
+    | IMPORT PARTITION (partitionNames | ALL) TABLESPACE
+    | TRUNCATE PARTITION (partitionNames | ALL)
+    | COALESCE PARTITION NUMBER_
+    | REORGANIZE PARTITION partitionNames INTO LP_ partitionDefinitions_ RP_
+    | EXCHANGE PARTITION partitionName WITH TABLE tableName ((WITH | WITHOUT) VALIDATION)
+    | ANALYZE PARTITION (partitionNames | ALL)
+    | CHECK PARTITION (partitionNames | ALL)
+    | OPTIMIZE PARTITION (partitionNames | ALL)
+    | REBUILD PARTITION (partitionNames | ALL)
+    | REPAIR PARTITION (partitionNames | ALL)
+    | REMOVE PARTITIONING
+    | partitionClause
+    ;
+
+partitionNames
+    : partitionName (COMMA_ partitionName)*
     ;
 
 dropTable
-    : DROP dropTableSpecification_ TABLE tableExistClause_ tableNames
+    : DROP dropTableSpecification_ TABLE existClause_? tableNames (RESTRICT | CASCADE)?
     ;
 
 dropIndex
-    : DROP INDEX dropIndexSpecification_? indexName (ON tableName)?
-    ( ALGORITHM EQ_? (DEFAULT | INPLACE | COPY) | LOCK EQ_? (DEFAULT | NONE | SHARED | EXCLUSIVE) )*
+    : DROP INDEX indexName (ON tableName)?
+    (algorithmOption | lockOption)*
+    ;
+
+algorithmOption
+    : ALGORITHM EQ_? (DEFAULT | INPLACE | COPY)
+    ;
+
+lockOption
+    : LOCK EQ_? (DEFAULT | NONE | SHARED | EXCLUSIVE)
     ;
 
 truncateTable
@@ -42,41 +98,49 @@ truncateTable
 
 createIndex
     : CREATE createIndexSpecification_ INDEX indexName indexType_? ON tableName keyParts_ indexOption_? 
-    (
-        ALGORITHM EQ_? (DEFAULT | INPLACE | COPY) 
-        | LOCK EQ_? (DEFAULT | NONE | SHARED | EXCLUSIVE)
-    )*
+    (algorithmOption | lockOption)*
     ;
 
 createDatabase
-    : CREATE (DATABASE | SCHEMA) (IF NOT EXISTS)? schemaName createDatabaseSpecification_*
+    : CREATE (DATABASE | SCHEMA) notExistClause_? schemaName createDatabaseSpecification_*
     ;
 
 alterDatabase
-    : ALTER (DATABASE | SCHEMA) schemaName createDatabaseSpecification_*
+    : ALTER (DATABASE | SCHEMA) schemaName? alterDatabaseSpecification_*
     ;
 
 createDatabaseSpecification_
     : DEFAULT? (CHARACTER SET | CHARSET) EQ_? characterSetName_
     | DEFAULT? COLLATE EQ_? collationName_
-    | DEFAULT ENCRYPTION EQ_ Y_N_
+    | DEFAULT? ENCRYPTION EQ_? y_or_n=STRING_
+    ;
+    
+alterDatabaseSpecification_
+    : createDatabaseSpecification_ 
+    | READ ONLY EQ_? (DEFAULT | NUMBER_)
     ;
 
 dropDatabase
-    : DROP (DATABASE | SCHEMA) (IF EXISTS)? schemaName
+    : DROP (DATABASE | SCHEMA) existClause_? schemaName
     ;
 
 alterInstance
     : ALTER INSTANCE instanceAction
-    
     ;
 
 instanceAction
-    : ROTATE INNODB_ MASTER KEY | ROTATE BINLOG MASTER KEY | RELOAD TLS_ (NO ROLLBACK ON ERROR)?
+    : (ENABLE | DISABLE) INNODB_ REDO_LOG_ 
+    | ROTATE INNODB_ MASTER KEY 
+    | ROTATE BINLOG MASTER KEY 
+    | RELOAD TLS (FOR CHANNEL channel)? (NO ROLLBACK ON ERROR)?
+    ;
+
+channel
+    : MYSQL_MAIN | MYSQL_ADMIN
     ;
 
 createEvent
-    : CREATE ownerStatement? EVENT (IF NOT EXISTS)? eventName
+    : CREATE ownerStatement? EVENT notExistClause_? eventName
       ON SCHEDULE scheduleExpression_
       (ON COMPLETION NOT? PRESERVE)? 
       (ENABLE | DISABLE | DISABLE ON SLAVE)?
@@ -94,7 +158,7 @@ alterEvent
     ;
 
 dropEvent
-    :  DROP EVENT (IF EXISTS)? eventName
+    :  DROP EVENT existClause_? eventName
     ;
 
 createFunction
@@ -110,7 +174,7 @@ alterFunction
     ;
 
 dropFunction
-    : DROP FUNCTION (IF EXISTS) functionName
+    : DROP FUNCTION existClause_? functionName
     ;
 
 createProcedure
@@ -125,7 +189,7 @@ alterProcedure
     ;
 
 dropProcedure
-    : DROP PROCEDURE (IF EXISTS)? functionName
+    : DROP PROCEDURE existClause_? functionName
     ;
 
 createServer
@@ -140,39 +204,37 @@ alterServer
     ;
 
 dropServer
-    : DROP SERVER (IF EXISTS)? serverName
+    : DROP SERVER existClause_? serverName
     ;
 
 createView
     : CREATE (OR REPLACE)?
-      ( ALGORITHM EQ_ (UNDEFINED | MERGE | TEMPTABLE) )?
+      (ALGORITHM EQ_ (UNDEFINED | MERGE | TEMPTABLE))?
       ownerStatement?
       (SQL SECURITY (DEFINER | INVOKER))?
-      VIEW viewName (LP_ identifier (COMMA_ identifier)* RP_)? 
+      VIEW viewName (LP_ columnNames RP_)?
       AS select
       (WITH (CASCADED | LOCAL)? CHECK OPTION)?
     ;
 
 alterView
-    : ALTER
-      ( ALGORITHM EQ_ (UNDEFINED | MERGE | TEMPTABLE) )?
+    : ALTER (ALGORITHM EQ_ (UNDEFINED | MERGE | TEMPTABLE))?
       ownerStatement?
       (SQL SECURITY (DEFINER | INVOKER))?
-      VIEW viewName (LP_ identifier (COMMA_ identifier)* RP_)? 
+      VIEW viewName (LP_ columnNames RP_)?
       AS select
       (WITH (CASCADED | LOCAL)? CHECK OPTION)?
     ;
 
 dropView
-    : DROP VIEW (IF EXISTS)?
-      viewName (COMMA_ viewName)* (RESTRICT | CASCADE)?
+    : DROP VIEW existClause_? viewName (COMMA_ viewName)* (RESTRICT | CASCADE)?
     ;
 
 createTablespaceInnodb
     : CREATE (UNDO)? TABLESPACE identifier
       ADD DATAFILE STRING_
       (FILE_BLOCK_SIZE EQ_ fileSizeLiteral_)?
-      (ENCRYPTION EQ_ Y_N_ )?
+      (ENCRYPTION EQ_ y_or_n=STRING_)?
       (ENGINE EQ_? STRING_)?
     ;
 
@@ -187,19 +249,26 @@ createTablespaceNdb
       (NODEGROUP EQ_? identifier)?
       WAIT?
       (COMMENT EQ_? STRING_)?
-      ENGINE EQ_? identifier
+      (ENGINE EQ_? identifier)?
     ;
 
-alterTablespace
-    : ALTER TABLESPACE identifier
+alterTablespaceNdb
+    : ALTER UNDO? TABLESPACE identifier
       (ADD | DROP) DATAFILE STRING_
       (INITIAL_SIZE EQ_ fileSizeLiteral_)?
-      WAIT?
-      ENGINE EQ_? identifier
+      WAIT? (RENAME TO identifier)?
+      (ENGINE EQ_? identifier)?
+    ;
+
+alterTablespaceInnodb
+    : ALTER UNDO? TABLESPACE identifier
+      (SET (ACTIVE | INACTIVE))? (ENCRYPTION EQ_? y_or_n=STRING_)
+      (RENAME TO identifier)?
+      (ENGINE EQ_? identifier)?
     ;
 
 dropTablespace
-    : DROP TABLESPACE identifier (ENGINE EQ_? identifier)?
+    : DROP UNDO? TABLESPACE identifier (ENGINE EQ_? identifier)?
     ;
 
 createLogfileGroup
@@ -211,30 +280,31 @@ createLogfileGroup
       (NODEGROUP EQ_? identifier)?
       WAIT?
       (COMMENT EQ_? STRING_)?
-      ENGINE EQ_? identifier
+      (ENGINE EQ_? identifier)?
     ;
 
 alterLogfileGroup
     : ALTER LOGFILE GROUP identifier
       ADD UNDOFILE STRING_
       (INITIAL_SIZE EQ_? fileSizeLiteral_)?
-      WAIT? ENGINE EQ_? identifier
+      WAIT? 
+      (ENGINE EQ_? identifier)?
     ;
 
 dropLogfileGroup
-    : DROP LOGFILE GROUP identifier ENGINE EQ_ identifier
+    : DROP LOGFILE GROUP identifier (ENGINE EQ_? identifier)?
     ;
 
 createTrigger
     :  CREATE ownerStatement? TRIGGER triggerName triggerTime triggerEvent ON tableName FOR EACH ROW triggerOrder? routineBody
     ;
 
-createTableSpecification_
-    : TEMPORARY
+dropTrigger
+    : DROP TRIGGER existClause_? (schemaName DOT_)? triggerName
     ;
 
-tableNotExistClause_
-    : (IF NOT EXISTS)?
+renameTable
+    : RENAME TABLE tableName TO tableName (tableName TO tableName)*
     ;
 
 createDefinitionClause
@@ -252,7 +322,7 @@ columnDefinition
 storageOption
     : dataTypeGenericOption
     | AUTO_INCREMENT
-    | DEFAULT (literals | expr)
+    | DEFAULT expr
     | COLUMN_FORMAT (FIXED | DYNAMIC | DEFAULT)
     | STORAGE (DISK | MEMORY | DEFAULT)
     ;
@@ -264,11 +334,12 @@ generatedOption
     ;
 
 dataTypeGenericOption
-    : primaryKey | UNIQUE KEY? | NOT? NULL | collateClause_ | checkConstraintDefinition | referenceDefinition | COMMENT STRING_
+    : primaryKey | UNIQUE KEY? | NOT? NULL | collateClause_ | checkConstraintDefinition | referenceDefinition 
+    | COMMENT STRING_ | ON UPDATE CURRENT_TIMESTAMP (LP_ NUMBER_ RP_)*
     ;
 
 checkConstraintDefinition
-    : (CONSTRAINT ignoredIdentifier_?)? CHECK expr (NOT? ENFORCED)?
+    : (CONSTRAINT ignoredIdentifier_?)? CHECK LP_ expr RP_ (NOT? ENFORCED)?
     ;
 
 referenceDefinition
@@ -308,7 +379,7 @@ constraintDefinition
     ;
 
 primaryKeyOption
-    : primaryKey indexType_? columnNames indexOption_*
+    : primaryKey indexType_? keyParts_ indexOption_*
     ;
 
 primaryKey
@@ -344,20 +415,20 @@ alterSpecification
     | DROP CHECK ignoredIdentifier_
     | ALTER CHECK ignoredIdentifier_ NOT? ENFORCED
     | ALGORITHM EQ_? (DEFAULT | INSTANT | INPLACE | COPY)
-    | ALTER COLUMN? columnName (SET DEFAULT literals | DROP DEFAULT)
+    | ALTER COLUMN? columnName (SET DEFAULT expr | DROP DEFAULT)
     | ALTER INDEX indexName (VISIBLE | INVISIBLE)
     | changeColumnSpecification
     | modifyColumnSpecification
     | DEFAULT? characterSet_ collateClause_?
     | CONVERT TO characterSet_ collateClause_?
     | (DISABLE | ENABLE) KEYS
-    | (DISCARD | IMPORT_) TABLESPACE
+    | (DISCARD | IMPORT) TABLESPACE
     | dropColumnSpecification
     | dropIndexSpecification
     | dropPrimaryKeySpecification
     | DROP FOREIGN KEY ignoredIdentifier_
     | FORCE
-    | LOCK EQ_? (DEFAULT | NONE | SHARED | EXCLUSIVE)
+    | lockOption
     // TODO investigate ORDER BY col_name [, col_name] ...
     | ORDER BY columnNames
     | renameColumnSpecification
@@ -367,7 +438,7 @@ alterSpecification
     | ADD PARTITION LP_ partitionDefinition_ RP_
     | DROP PARTITION ignoredIdentifiers_
     | DISCARD PARTITION (ignoredIdentifiers_ | ALL) TABLESPACE
-    | IMPORT_ PARTITION (ignoredIdentifiers_ | ALL) TABLESPACE
+    | IMPORT PARTITION (ignoredIdentifiers_ | ALL) TABLESPACE
     | TRUNCATE PARTITION (ignoredIdentifiers_ | ALL)
     | COALESCE PARTITION NUMBER_
     | REORGANIZE PARTITION ignoredIdentifiers_ INTO partitionDefinitions_
@@ -404,9 +475,12 @@ tableOption_
     | PACK_KEYS EQ_? (NUMBER_ | DEFAULT)
     | PASSWORD EQ_? STRING_
     | ROW_FORMAT EQ_? (DEFAULT | DYNAMIC | FIXED | COMPRESSED | REDUNDANT | COMPACT)
+    | SECONDARY_ENGINE EQ_? (NULL | STRING_)
+    | STORAGE (DISK | MEMORY)
     | STATS_AUTO_RECALC EQ_? (DEFAULT | NUMBER_)
     | STATS_PERSISTENT EQ_? (DEFAULT | NUMBER_)
-    | STATS_SAMPLE_PAGES EQ_? NUMBER_
+    | STATS_SAMPLE_PAGES EQ_? (NUMBER_ | DEFAULT)
+    | TABLE_CHECKSUM EQ_ NUMBER_
     | TABLESPACE ignoredIdentifier_ (STORAGE (DISK | MEMORY | DEFAULT))?
     | UNION EQ_? LP_ tableName (COMMA_ tableName)* RP_
     ;
@@ -465,7 +539,7 @@ partitionDefinitions_
     ;
 
 partitionDefinition_
-    : PARTITION identifier 
+    : PARTITION partitionName
     (VALUES (LESS THAN partitionLessThanValue_ | IN LP_ partitionValueList_ RP_))?
     partitionDefinitionOption_* 
     (LP_ subpartitionDefinition_ (COMMA_ subpartitionDefinition_)* RP_)?
@@ -476,7 +550,7 @@ partitionLessThanValue_
     ;
 
 partitionValueList_
-    : literals (COMMA_ literals)*
+    : expr (COMMA_ expr)*
     ;
 
 partitionDefinitionOption_
@@ -497,23 +571,15 @@ dropTableSpecification_
     : TEMPORARY?
     ;
 
-tableExistClause_
-    : (IF EXISTS)?
-    ;
-
-dropIndexSpecification_
-    : ONLINE | OFFLINE
-    ;
-
 ownerStatement
     : DEFINER EQ_ (userName | CURRENT_USER ( '(' ')')?)
     ;
 
 scheduleExpression_
-    : AT_ timestampValue (PLUS_ intervalExpression)*
-    | EVERY intervalExpression
+    : AT timestampValue (PLUS_ intervalExpression)*
+    | EVERY intervalValue
       (STARTS timestampValue (PLUS_ intervalExpression)*)?
-      ( ENDS timestampValue (PLUS_ intervalExpression)*)?     
+      (ENDS timestampValue (PLUS_ intervalExpression)*)?     
     ;
 
 timestampValue
@@ -521,7 +587,7 @@ timestampValue
     ;
 
 routineBody
-    :  NOT_SUPPORT_
+    : simpleStatement | compoundStatement
     ;
 
 serverOption_
@@ -538,14 +604,178 @@ routineOption_
     : COMMENT STRING_                                       
     | LANGUAGE SQL                                              
     | NOT? DETERMINISTIC                                          
-    | ( CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA)                                                           
+    | (CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA)
     | SQL SECURITY (DEFINER | INVOKER)                    
     ;
 
 procedureParameter_
-    : ( IN | OUT | INOUT ) identifier dataType
+    : (IN | OUT | INOUT)? identifier dataType
     ;
 
 fileSizeLiteral_
     : FILESIZE_LITERAL | numberLiterals
+    ; 
+    
+simpleStatement
+    : validStatement
+    ;
+    
+compoundStatement
+    : beginStatement
+    ;
+
+validStatement
+    : (createTable | alterTable | dropTable | truncateTable 
+    | insert | replace | update | delete | select | call
+    | setVariable | beginStatement | declareStatement | flowControlStatement | cursorStatement | conditionHandlingStatement) SEMI_?
+    ;
+
+beginStatement
+    : (labelName COLON_)? BEGIN validStatement* END labelName? SEMI_?
+    ;
+
+declareStatement
+    : DECLARE variable (COMMA_ variable)* dataType (DEFAULT simpleExpr)*
+    ;
+
+flowControlStatement
+    : caseStatement | ifStatement | iterateStatement | leaveStatement | loopStatement | repeatStatement | returnStatement | whileStatement
+    ;
+    
+caseStatement
+    : CASE expr? 
+      (WHEN expr THEN validStatement+)+ 
+      (ELSE validStatement+)? 
+      END CASE
+    ;
+    
+ifStatement
+    : IF expr THEN validStatement+
+      (ELSEIF expr THEN validStatement+)*
+      (ELSE validStatement+)?
+      END IF
+    ;
+    
+iterateStatement
+    : ITERATE labelName
+    ;
+
+leaveStatement
+    : LEAVE labelName
+    ;
+    
+loopStatement
+    : (labelName COLON_)? LOOP
+      validStatement+
+      END LOOP labelName?
+    ;
+    
+repeatStatement
+    : (labelName COLON_)? REPEAT
+      validStatement+
+      UNTIL expr
+      END REPEAT labelName?
+    ;
+    
+returnStatement
+    : RETURN expr
+    ;   
+    
+whileStatement
+    : (labelName COLON_)? WHILE expr DO
+      validStatement+
+      END WHILE labelName?
+    ;
+    
+cursorStatement
+    : cursorCloseStatement | cursorDeclareStatement | cursorFetchStatement | cursorOpenStatement 
+    ;
+    
+cursorCloseStatement
+    : CLOSE cursorName
+    ;
+    
+cursorDeclareStatement
+    : DECLARE cursorName CURSOR FOR select
+    ;
+    
+cursorFetchStatement
+    : FETCH ((NEXT)? FROM)? cursorName INTO variable (COMMA_ variable)*
+    ;
+    
+cursorOpenStatement
+    : OPEN cursorName
+    ;
+    
+conditionHandlingStatement
+    : declareConditionStatement | declareHandlerStatement | getDiagnosticsStatement | resignalStatement | signalStatement 
+    ;
+    
+declareConditionStatement
+    : DECLARE conditionName CONDITION FOR conditionValue
+    ;
+    
+declareHandlerStatement
+    : DECLARE handlerAction HANDLER FOR conditionValue (COMMA_ conditionValue)* validStatement
+    ;
+
+getDiagnosticsStatement
+    : GET (CURRENT | STACKED)? DIAGNOSTICS 
+      ((statementInformationItem (COMMA_ statementInformationItem)*) 
+    | (CONDITION conditionNumber conditionInformationItem (COMMA_ conditionInformationItem)*))
+    ;
+
+statementInformationItem
+    : variable EQ_ statementInformationItemName
+    ;
+    
+conditionInformationItem
+    : variable EQ_ conditionInformationItemName
+    ;
+    
+conditionNumber
+    : variable | numberLiterals 
+    ;
+
+statementInformationItemName
+    : NUMBER
+    | ROW_COUNT
+    ;
+    
+conditionInformationItemName
+    : CLASS_ORIGIN
+    | SUBCLASS_ORIGIN
+    | RETURNED_SQLSTATE
+    | MESSAGE_TEXT
+    | MYSQL_ERRNO
+    | CONSTRAINT_CATALOG
+    | CONSTRAINT_SCHEMA
+    | CONSTRAINT_NAME
+    | CATALOG_NAME
+    | SCHEMA_NAME
+    | TABLE_NAME
+    | COLUMN_NAME
+    | CURSOR_NAME
+    ;
+    
+handlerAction
+    : CONTINUE | EXIT | UNDO
+    ;
+    
+conditionValue
+    : numberLiterals | SQLSTATE (VALUE)? stringLiterals | conditionName | SQLWARNING | NOT FOUND | SQLEXCEPTION
+    ;
+    
+resignalStatement
+    : RESIGNAL conditionValue?
+      (SET signalInformationItem (COMMA_ signalInformationItem)*)?
+    ;
+    
+signalStatement
+    : SIGNAL conditionValue
+      (SET signalInformationItem (COMMA_ signalInformationItem)*)?
+    ;
+    
+signalInformationItem
+    : conditionInformationItemName EQ_ expr
     ;
