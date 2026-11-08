@@ -1,11 +1,15 @@
 # ShardingSphere Documents
 
-To build ShardingSphere website by means of [hugo](http://gohugo.io/overview/introduction/) and [hugo theme learn](https://github.com/matcornic/hugo-theme-learn).
+This directory contains the document, community and blog content and article media.
+Edit Markdown under each site's `content` directory and article media under its existing `static` paths.
+Preserve existing language suffixes, front matter and shortcodes.
 
-Follow the steps below to deploy ShardingSphere website, 
+Website presentation and builds are maintained in [shardingsphere-doc](https://github.com/apache/shardingsphere-doc), using its [build script](https://github.com/apache/shardingsphere-doc/blob/asf-site/.github/scripts/build-shardingsphere-docs.sh).
+Rebuilding a historical content version uses the current presentation sources; existing published historical pages are not automatically rebuilt.
 
-1. Execute `docs/build.sh` to generate `html` files at the directory of `docs/target/`.
-2. Clone [shardingsphere-doc](https://github.com/apache/shardingsphere-doc.git).
-3. Checkout to `asf-site` branch.
-3. Overwrite `document/current` with `docs/target/document/current` and `community` with `docs/target/community`.
-4. Commit changes and raise a PR for [shardingsphere-doc](https://github.com/apache/shardingsphere-doc.git).
+## Embedded videos
+
+Use the Bilibili BV identifier or YouTube video identifier:
+
+- `{{< bilibili BV1aE411X7kQ >}}`
+- `{{< youtube 2MsN8gpT6jY >}}`

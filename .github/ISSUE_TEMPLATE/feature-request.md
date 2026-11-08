@@ -5,10 +5,10 @@ about: I have a suggestion
 
 ## Feature Request
 
-**For English only**, other languages will not accept.
+**For English only**, other languages will not be accepted.
 
 Please pay attention on issues you submitted, because we maybe need more details. 
-If no response **more than 7 days** and we cannot make decision by current information, we will **close it**.
+If no response anymore and we cannot make decision by current information, we will **close it**.
 
 Please answer these questions before submitting your issue. Thanks!
 

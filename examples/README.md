@@ -1,121 +1,45 @@
 # ShardingSphere-example
 
-Example for 1.x please see tags in `https://github.com/apache/shardingsphere/tree/${tag}/sharding-jdbc-example`
+Example for 1.x please see tags in `https://github.com/apache/shardingsphere/tree/${tag}/shardingsphere-jdbc-example`
 
 Example for 2.x or 3.x or 4.x please see tags in `https://github.com/apache/shardingsphere-example/tree/${tag}`
 
-**Need attention**
+**Notices**
 
-- *Please do not use `dev` branch to run your example, example of `dev` branch is not released yet.*
+- *The `shardingsphere-jdbc-example-generator` module is a brand-new sample experience module.*
 
-- *The manual schema initial script is in `https://github.com/apache/shardingsphere-example/blob/dev/src/resources/manual_schema.sql`, please execute it before you first run the example.*
+- *Please make sure primary replica data replication sync on MySQL is running correctly. Otherwise, readwrite-splitting example will query empty data from the replica.*
 
-- *Please make sure master-slave data sync on MySQL is running correctly. Otherwise this example will query empty data from slave.*
+## Using `master` branch
 
-## Before start the example if you want use `dev` branch
+Please make sure some dependencies from [Apache ShardingSphere](https://github.com/apache/shardingsphere) has been installed since examples depend on that.
+if you are a newbie for Apache ShardingSphere, you could prepare the dependencies as following: 
 
-Please make sure some dependencies from [shardingsphere](https://github.com/apache/shardingsphere) and [shardingsphere-spi-impl](https://github.com/OpenSharding/shardingsphere-spi-impl) have been installed since some examples depend on that.
-if you are a newbie for shardingsphere, you could prepare the dependencies as following: 
-
-1.download and install [shardingsphere](https://github.com/apache/shardingsphere): 
+download and install [Apache ShardingSphere](https://github.com/apache/shardingsphere):
 
 ```bash
-## download the code of shardingsphere
+## download source code
 git clone https://github.com/apache/shardingsphere.git
 
-## checkout a specific version, example is 4.0.0-RC1
-cd shardingsphere && git checkout 4.0.0-RC1
-
-## install the dependencies
-mvn clean install -Prelease
+## compile source code
+cd shardingsphere
+./mvnw clean install -P-dev,release,all
 ```
 
-2.download and install [shardingsphere-spi-impl](https://github.com/OpenSharding/shardingsphere-spi-impl): 
-
-```bash
-## download the code of shardingsphere-spi-impl
-git clone https://github.com/OpenSharding/shardingsphere-spi-impl.git
-
-## checkout a specific version, example is 4.0.0-RC1
-cd shardingsphere-spi-impl && git checkout 4.0.0-RC1
-
-## install the dependencies
-mvn clean install
-```
-
-## shardingsphere-example module design
+## Module design
 
 ### project structure
 
 ```
 shardingsphere-example
-  ├── example-core
-  │   ├── config-utility
-  │   ├── example-api
-  │   ├── example-raw-jdbc
-  │   ├── example-spring-jpa
-  │   └── example-spring-mybatis
-  ├── sharding-jdbc-example
-  │   ├── sharding-example
-  │   │   ├── sharding-raw-jdbc-example
-  │   │   ├── sharding-spring-boot-jpa-example
-  │   │   ├── sharding-spring-boot-mybatis-example
-  │   │   ├── sharding-spring-namespace-jpa-example
-  │   │   └── sharding-spring-namespace-mybatis-example
-  │   ├── orchestration-example
-  │   │   ├── orchestration-raw-jdbc-example
-  │   │   ├── orchestration-spring-boot-example
-  │   │   └── orchestration-spring-namespace-example
-  │   ├── transaction-example
-  │   │   ├── transaction-2pc-xa-example
-  │   │   └──transaction-base-seata-example
-  │   ├── other-feature-example
-  │   │   ├── hint-example
-  │   │   └── encrypt-example
-  ├── sharding-proxy-example
-  │   └── sharding-proxy-boot-mybatis-example
+  ├── shardingsphere-jdbc-example-generator
+  ├── shardingsphere-parser-example
   └── src/resources
-        └── manual_schema.sql
+          └── manual_schema.sql
 ```
 
-### Best practice for sharding data
+## Available Examples
 
-* sharding databases
-* sharding tables
-* sharding databases and tables
-* master-slave
-* sharding & master-slave
-
-You can get more detail from **[sharding-example](./sharding-jdbc-example/sharding-example)**
-
-### Best practice for sharding + orchestration
-
-* using local configuration file for zookeeper/etcd & sharding
-* using register center(zookeeper/etcd)'s configuration for sharding
-
-You can get more detail from **[orchestration-example](./sharding-jdbc-example/orchestration-example)**
-
-### Best Practice for sharding + distribution-transaction
-
-* 2pc-xa transaction
-* base-seata transaction
-
-You can get more detail from **[transaction-example](./sharding-jdbc-example/transaction-example)**
-
-### Best Practice for hint routing
-
-You can get more detail from **[hint-example](./sharding-jdbc-example/other-feature-example/hint-example)**
-
-### Best Practice for data encrypt
-
-You can get more detail from **[encrypt-example](./sharding-jdbc-example/other-feature-example/encrypt-example)**
-
-### Best Practice for APM Integration
-
-We will add APM integration example recently.
-
-### Best Practice for sharding-proxy
-
-We prefer to add a docker base example recently.
-
-### [how to use docker to config sharding-jdbc & sharding-proxy](./docker/docker-compose.md) (Optional)
+| Example                                                                         | Description                                                                    |
+|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| [ShardingSphere-JDBC Examples](shardingsphere-jdbc-example-generator/README.md) | Generate the examples by configuration and show how to use ShardingSphere-JDBC |

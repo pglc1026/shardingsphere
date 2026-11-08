@@ -1,28 +1,36 @@
 +++
-pre = "<b>5. </b>"
+pre = "<b>10. </b>"
 title = "Downloads"
-weight = 5
+weight = 10
 chapter = true
+extracss = true
 +++
 
-## Latest releases
+## Latest Releases
 
-ShardingSphere is released as source code tarballs with corresponding binary tarballs for convenience. The downloads are distributed via mirror sites and should be checked for tampering using GPG or SHA-512.
+Apache ShardingSphere is released as source code tarballs with corresponding binary tarballs for convenience.
+The downloads are distributed via mirror sites and should be checked for tampering using GPG or SHA-512.
 
-| Version   | Release date | Source download             | Sharding-JDBC download | Sharding-Proxy download | Sharding-UI download |
-| --------- | ------------ | --------------------------- | ----------------------------- | ------------------------------ | ------------------------------ |
-| 4.0.0     | 2020 Jan 13  | [source](https://www.apache.org/dyn/closer.cgi?path=incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-src.zip) ([asc](https://downloads.apache.org/incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-src.zip.asc) [sha512](https://downloads.apache.org/incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-src.zip.sha512))                         | [binary](https://www.apache.org/dyn/closer.cgi?path=incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-sharding-jdbc-bin.tar.gz) ([asc](https://downloads.apache.org/incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-sharding-jdbc-bin.tar.gz.asc) [sha512](https://downloads.apache.org/incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-sharding-jdbc-bin.tar.gz.sha512))                           | [binary](https://www.apache.org/dyn/closer.cgi?path=incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-sharding-proxy-bin.tar.gz) ([asc](https://downloads.apache.org/incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-sharding-proxy-bin.tar.gz.asc) [sha512](https://downloads.apache.org/incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-sharding-proxy-bin.tar.gz.sha512))                            | [binary](https://www.apache.org/dyn/closer.cgi?path=incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-sharding-ui-bin.tar.gz) ([asc](https://downloads.apache.org/incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-sharding-ui-bin.tar.gz.asc) [sha512](https://downloads.apache.org/incubator/shardingsphere/4.0.0/apache-shardingsphere-incubating-4.0.0-sharding-ui-bin.tar.gz.sha512))                         |
-| 4.0.1     | 2020 Mar 9   | [source](https://www.apache.org/dyn/closer.cgi?path=incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-src.zip) ([asc](https://downloads.apache.org/incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-src.zip.asc) [sha512](https://downloads.apache.org/incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-src.zip.sha512))                         | [binary](https://www.apache.org/dyn/closer.cgi?path=incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-sharding-jdbc-bin.tar.gz) ([asc](https://downloads.apache.org/incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-sharding-jdbc-bin.tar.gz.asc) [sha512](https://downloads.apache.org/incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-sharding-jdbc-bin.tar.gz.sha512))                           | [binary](https://www.apache.org/dyn/closer.cgi?path=incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-sharding-proxy-bin.tar.gz) ([asc](https://downloads.apache.org/incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-sharding-proxy-bin.tar.gz.asc) [sha512](https://downloads.apache.org/incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-sharding-proxy-bin.tar.gz.sha512))                            | [binary](https://www.apache.org/dyn/closer.cgi?path=incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-sharding-ui-bin.tar.gz) ([asc](https://downloads.apache.org/incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-sharding-ui-bin.tar.gz.asc) [sha512](https://downloads.apache.org/incubator/shardingsphere/4.0.1/apache-shardingsphere-incubating-4.0.1-sharding-ui-bin.tar.gz.sha512))                         |
+##### Apache ShardingSphere - Version: 5.5.3 ( Release Date: March 1, 2026 )
 
-## All releases
+- Source Codes: [<u>SRC</u>](https://www.apache.org/dyn/closer.lua/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-src.zip) ( [<u>ASC</u>](https://downloads.apache.org/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-src.zip.asc), [<u>SHA512</u>](https://downloads.apache.org/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-src.zip.sha512) )
+- ShardingSphere-JDBC Binary Distribution: [<u>TAR</u>](https://www.apache.org/dyn/closer.lua/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-shardingsphere-jdbc-bin.tar.gz) ( [<u>ASC</u>](https://downloads.apache.org/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-shardingsphere-jdbc-bin.tar.gz.asc), [<u>SHA512</u>](https://downloads.apache.org/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-shardingsphere-jdbc-bin.tar.gz.sha512) )
+- ShardingSphere-Proxy Binary Distribution: [<u>TAR</u>](https://www.apache.org/dyn/closer.lua/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-shardingsphere-proxy-bin.tar.gz) ( [<u>ASC</u>](https://downloads.apache.org/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-shardingsphere-proxy-bin.tar.gz.asc), [<u>SHA512</u>](https://downloads.apache.org/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-shardingsphere-proxy-bin.tar.gz.sha512), [<u>Notes</u>](https://shardingsphere.apache.org/document/5.5.3/en/user-manual/shardingsphere-proxy/startup/bin/#special-notes) )
+- ShardingSphere-Agent Binary Distribution: [<u>TAR</u>](https://www.apache.org/dyn/closer.lua/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-shardingsphere-agent-bin.tar.gz) ( [<u>ASC</u>](https://downloads.apache.org/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-shardingsphere-agent-bin.tar.gz.asc), [<u>SHA512</u>](https://downloads.apache.org/shardingsphere/5.5.3/apache-shardingsphere-5.5.3-shardingsphere-agent-bin.tar.gz.sha512) )
 
-Find all releases in the [Archive incubating repository](https://archive.apache.org/dist/incubator/shardingsphere/).
+## All Releases
 
-## Verify the releases
+Find all releases in the [Archive repository](https://archive.apache.org/dist/shardingsphere/).</br>
+Find all incubator releases in the [Archive incubator repository](https://archive.apache.org/dist/incubator/shardingsphere/).
+
+## Verify the Releases
 
 [PGP signatures KEYS](https://downloads.apache.org/shardingsphere/KEYS)
 
-It is essential that you verify the integrity of the downloaded files using the PGP or SHA signatures. The PGP signatures can be verified using GPG or PGP. Please download the KEYS as well as the asc signature files for relevant distribution. It is recommended to get these files from the main distribution directory and not from the mirrors.
+It is essential that you verify the integrity of the downloaded files using the PGP or SHA signatures.
+The PGP signatures can be verified using GPG or PGP.
+Please download the KEYS as well as the asc signature files for relevant distribution.
+It is recommended to get these files from the main distribution directory and not from the mirrors.
 
 ```shell
 gpg -i KEYS
